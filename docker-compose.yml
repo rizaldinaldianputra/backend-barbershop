@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0.15
+    container_name: mysql-container
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      MYSQL_DATABASE: barbershop
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-container
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: rootpassword  # Ganti dengan kata sandi root MySQL jika digunakan
+    ports:
+      - "8081:80"  # Port untuk mengakses phpMyAdmin dari host
+    depends_on:
+      - mysql
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: barbershop-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-container:3306/barbershop?useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD:  # Biarkan kosong karena MySQL tidak memiliki password
+    depends_on:
+      - mysql
+
+volumes:
+  mysql-data:
